@@ -1,23 +1,44 @@
 <template>
   <div class="single-post-page">
     <section class="post">
-      <h1 class="post-title">Title of the Post</h1>
+      <h1 class="post-title">{{ loadedPost.title }}</h1>
       <div class="post-details">
-        <div class="post-detail">Last updated on XXX</div>
-        <div class="post-detail">Written by XXX</div>
+        <div class="post-detail">{{ loadedPost.updatedDate }}</div>
+        <div class="post-detail">{{ loadedPost.author }}</div>
       </div>
-      <p>Content of the post</p>
+      <p>{{ loadedPost.content }}</p>
     </section>
     <section class="post-feedback">
       <p>
         Let me know what u think of the post, send a mail to
-        <a href="mailto:feedback@domain.com">
-          feedback@domain.co
-        </a>
+        <a
+          href="mailto:feedback@domain.com"
+        >feedback@domain.co</a>
       </p>
     </section>
   </div>
 </template>
+
+<script>
+export default {
+  asyncData(context, callback) {
+    setTimeout(() => {
+      callback(null, {
+        loadedPost: {
+          id: "1",
+          title: `First post with id of ${context.params.id}`,
+          previewText: "This is my first post",
+          author: "Panos",
+          updatedDate: new Date(),
+          content: "Dummy text which is the content",
+          thumbnail:
+            "https://s27389.pcdn.co/wp-content/uploads/2019/10/retail-innovation-changing-tech-consumer-employee-demands-1024x440.jpeg"
+        }
+      });
+    }, 1000);
+  }
+};
+</script>
 
 <style scoped>
 .single-post-page {
