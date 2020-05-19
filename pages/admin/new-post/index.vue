@@ -16,11 +16,10 @@ export default {
     AdminPostForm
   },
   methods: {
-    onSubmitted(postData) {
-      axios
-        .post("https://nuxt-blog-97910.firebaseio.com/posts.json", postData)
-        .then(result => console.log(result))
-        .catch(e => console.log(e));
+    async onSubmitted(postData) {
+      await this.$store.dispatch("addPost", postData);
+
+      this.$router.push("/admin");
     }
   }
 };

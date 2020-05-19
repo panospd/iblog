@@ -20,22 +20,20 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
-  asyncData(context, callback) {
-    setTimeout(() => {
-      callback(null, {
-        loadedPost: {
-          id: "1",
-          title: `First post with id of ${context.params.id}`,
-          previewText: "This is my first post",
-          author: "Panos",
-          updatedDate: new Date(),
-          content: "Dummy text which is the content",
-          thumbnail:
-            "https://s27389.pcdn.co/wp-content/uploads/2019/10/retail-innovation-changing-tech-consumer-employee-demands-1024x440.jpeg"
-        }
-      });
-    }, 1000);
+  async asyncData(context) {
+    try {
+      const url = `https://nuxt-blog-97910.firebaseio.com/posts/${context.params.id}.json`;
+      const res = await axios.get(url);
+
+      return {
+        loadedPost: res.data
+      };
+    } catch (error) {
+      context.error(e);
+    }
   }
 };
 </script>
