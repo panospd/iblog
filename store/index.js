@@ -1,4 +1,3 @@
-import axios from "axios";
 import Vuex from "vuex";
 
 const createStore = () => {
@@ -24,19 +23,14 @@ const createStore = () => {
     actions: {
       async nuxtServerInit({ commit }, context) {
         try {
-          const res = await axios.get(
-            "https://nuxt-blog-97910.firebaseio.com/posts.json"
-          );
-
-          console.log("Post array", res.data);
+          console.log(context.app.$axios.get);
+          const res = await context.app.$axios.get("posts.json");
 
           const postsArray = [];
 
           for (const key in res.data) {
             postsArray.push({ ...res.data[key], id: key });
           }
-
-          console.log("Post array", postsArray);
 
           commit("setPosts", postsArray);
         } catch (error) {
@@ -53,10 +47,7 @@ const createStore = () => {
             updatedDate: new Date()
           };
 
-          const res = await axios.post(
-            "https://nuxt-blog-97910.firebaseio.com/posts.json",
-            newPost
-          );
+          const res = await this.$axios.post("posts.json", newPost);
 
           return commit("addPost", { ...newPost, id: res.data.name });
         } catch (error) {
@@ -65,9 +56,9 @@ const createStore = () => {
       },
       async editPost({ commit }, editedPost) {
         try {
-          const url = `https://nuxt-blog-97910.firebaseio.com/posts/${editedPost.id}.json`;
+          const url = `posts/${editedPost.id}.json`;
 
-          await axios.put(url, editedPost);
+          await this.$axios.put(url, editedPost);
 
           return commit("editPost", editedPost);
         } catch (error) {

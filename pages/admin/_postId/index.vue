@@ -7,7 +7,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import AdminPostForm from "@/components/Admin/AdminPostForm";
 
 export default {
@@ -17,8 +16,8 @@ export default {
   },
   async asyncData(context) {
     try {
-      const url = `https://nuxt-blog-97910.firebaseio.com/posts/${context.params.postId}.json`;
-      const res = await axios.get(url);
+      const url = `posts/${context.params.postId}.json`;
+      const res = await context.app.$axios.get(url);
 
       return {
         loadedPost: { ...res.data, id: context.params.postId }

@@ -11,28 +11,27 @@
     <section class="post-feedback">
       <p>
         Let me know what u think of the post, send a mail to
-        <a
-          href="mailto:feedback@domain.com"
-        >feedback@domain.co</a>
+        <a href="mailto:feedback@domain.com">feedback@domain.co</a>
       </p>
     </section>
   </div>
 </template>
 
 <script>
-import axios from "axios";
-
 export default {
   async asyncData(context) {
     try {
-      const url = `https://nuxt-blog-97910.firebaseio.com/posts/${context.params.id}.json`;
-      const res = await axios.get(url);
+      const url = `posts/${context.params.id}.json`;
+      const res = await context.app.$axios.get(url);
 
       return {
-        loadedPost: res.data
+        loadedPost: {
+          ...res.data,
+          updatedDate: context.app.$filterDate(res.data.updatedDate)
+        }
       };
     } catch (error) {
-      context.error(e);
+      context.error(error);
     }
   }
 };
