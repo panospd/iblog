@@ -55,7 +55,8 @@ export default {
     extend(config, ctx) {}
   },
   env: {
-    baseUrl: process.env.BASE_URL || "https://nuxt-blog-97910.firebaseio.com/"
+    baseUrl: process.env.BASE_URL || "https://nuxt-blog-97910.firebaseio.com/",
+    fbAPIKey: "AIzaSyCcEfj7pfG6r0659qhHTyuKp3gRlmmGXRk"
   },
   transition: {
     name: "fade",
