@@ -22,12 +22,14 @@ const createStore = () => {
       },
       setToken(state, token) {
         state.token = token;
+      },
+      clearToken(state) {
+        state.token = null;
       }
     },
     actions: {
       async nuxtServerInit({ commit }, context) {
         try {
-          console.log(context.app.$axios.get);
           const res = await context.app.$axios.get("posts.json");
 
           const postsArray = [];
@@ -51,16 +53,19 @@ const createStore = () => {
             updatedDate: new Date()
           };
 
-          const res = await this.$axios.post("posts.json", newPost);
+          const res = await this.$axios.post(
+            "posts.json?auth=${state.token}",
+            newPost
+          );
 
           return commit("addPost", { ...newPost, id: res.data.name });
         } catch (error) {
           console.log(error);
         }
       },
-      async editPost({ commit }, editedPost) {
+      async editPost({ commit, state }, editedPost) {
         try {
-          const url = `posts/${editedPost.id}.json`;
+          const url = `posts/${editedPost.id}.json?auth=${state.token}`;
 
           await this.$axios.put(url, editedPost);
 
@@ -69,7 +74,7 @@ const createStore = () => {
           console.log(error);
         }
       },
-      async authenticateUser({ commit }, authData) {
+      async authenticateUser({ commit, dispatch }, authData) {
         try {
           const url = authData.isLogin
             ? `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.fbAPIKey}`
@@ -81,15 +86,45 @@ const createStore = () => {
             returnSecureToken: true
           });
 
-          return commit("setToken", data.idToken);
+          commit("setToken", data.idToken);
+          localStorage.setItem("token", data.idToken);
+          localStorage.setItem(
+            "tokenExpiration",
+            new Date().getTime() + data.expiresIn * 1000
+          );
+
+          dispatch("setLogoutTimer", data.expiresIn * 1000);
         } catch (error) {
           console.log(error);
         }
+      },
+      setLogoutTimer({ commit }, duration) {
+        setTimeout(() => {
+          commit("clearToken");
+        }, duration);
+      },
+      initAuth({ commit, dispatch }) {
+        const token = localStorage.getItem("token");
+        const expirationDate = localStorage.getItem("tokenExpiration");
+
+        console.log("Here I am", token);
+
+        console.log(new Date() > expirationDate);
+
+        if (new Date().getTime() > +expirationDate || !token) return;
+
+        dispatch("setLogoutTimer", expirationDate - new Date().getTime);
+        console.log("Here I am", token);
+
+        commit("setToken", token);
       }
     },
     getters: {
       loadedPosts(state) {
         return state.loadedPosts;
+      },
+      isAuthenticated(state) {
+        return !!state.token;
       }
     }
   });
