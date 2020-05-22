@@ -1,4 +1,5 @@
 import Vuex from "vuex";
+import Cookie from "js-cookie";
 
 const createStore = () => {
   return new Vuex.Store({
@@ -46,7 +47,7 @@ const createStore = () => {
       savePosts({ commit }, posts) {
         commit("setPosts", posts);
       },
-      async addPost({ commit }, post) {
+      async addPost({ commit, state }, post) {
         try {
           const newPost = {
             ...post,
@@ -54,7 +55,7 @@ const createStore = () => {
           };
 
           const res = await this.$axios.post(
-            "posts.json?auth=${state.token}",
+            `posts.json?auth=${state.token}`,
             newPost
           );
 
@@ -90,33 +91,59 @@ const createStore = () => {
           localStorage.setItem("token", data.idToken);
           localStorage.setItem(
             "tokenExpiration",
-            new Date().getTime() + data.expiresIn * 1000
+            new Date().getTime() + +data.expiresIn * 1000
           );
 
-          dispatch("setLogoutTimer", data.expiresIn * 1000);
+          Cookie.set("jwt", data.idToken);
+          Cookie.set(
+            "expirationDate",
+            new Date().getTime() + +data.expiresIn * 1000
+          );
         } catch (error) {
           console.log(error);
         }
       },
-      setLogoutTimer({ commit }, duration) {
-        setTimeout(() => {
-          commit("clearToken");
-        }, duration);
-      },
-      initAuth({ commit, dispatch }) {
-        const token = localStorage.getItem("token");
-        const expirationDate = localStorage.getItem("tokenExpiration");
+      initAuth({ commit, dispatch }, req) {
+        let token;
+        let expirationDate;
 
-        console.log("Here I am", token);
+        if (req) {
+          if (!req.headers.cookie) return;
 
-        console.log(new Date() > expirationDate);
+          const jwtCookie = req.headers.cookie
+            .split(";")
+            .find(c => c.trim().startsWith("jwt="));
 
-        if (new Date().getTime() > +expirationDate || !token) return;
+          if (!jwtCookie) return;
 
-        dispatch("setLogoutTimer", expirationDate - new Date().getTime);
-        console.log("Here I am", token);
+          token = jwtCookie.split("=")[1];
+
+          expirationDate = req.headers.cookie
+            .split(";")
+            .find(c => c.trim().startsWith("expirationDate="))
+            .split("=")[1];
+        } else {
+          token = localStorage.getItem("token");
+          expirationDate = localStorage.getItem("tokenExpiration");
+        }
+
+        if (new Date().getTime() > +expirationDate || !token) {
+          dispatch("logout");
+          return;
+        }
 
         commit("setToken", token);
+      },
+      logout({ commit }) {
+        commit("clearToken");
+
+        Cookie.remove("jwt");
+        Cookie.remove("expirationDate");
+
+        if (process.client) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("tokenExpiration");
+        }
       }
     },
     getters: {
