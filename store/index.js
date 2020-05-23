@@ -75,7 +75,7 @@ const createStore = () => {
           console.log(error);
         }
       },
-      async authenticateUser({ commit, dispatch }, authData) {
+      async authenticateUser({ commit }, authData) {
         try {
           const url = authData.isLogin
             ? `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.fbAPIKey}`
@@ -99,6 +99,10 @@ const createStore = () => {
             "expirationDate",
             new Date().getTime() + +data.expiresIn * 1000
           );
+
+          return this.$axios.$post("http://localhost:3000/api/track-data", {
+            data: "Authenticated"
+          });
         } catch (error) {
           console.log(error);
         }
